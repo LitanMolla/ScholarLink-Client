@@ -2,10 +2,12 @@ import React, { useState } from "react";
 import { Link, NavLink } from "react-router";
 import { FiMenu, FiX } from "react-icons/fi";
 import Logo from "../ui/Logo";
+import useAuth from "../../hooks/useAuth";
 
 const Navbar = () => {
   const [isOpen, setIsOpen] = useState(false);
-
+  const { user } = useAuth()
+  console.log(user)
   const navLinks = [
     { name: "Home", path: "/" },
     { name: "All Scholarships", path: "/scholarships" },
