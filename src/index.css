@@ -17,5 +17,5 @@
   @apply bg-purple-600 hover:bg-purple-700 text-white
 }
 .btn{
-  @apply px-6 py-2.5 rounded-md
+  @apply px-6 py-2.5 rounded-md duration-300 cursor-pointer
 }
