@@ -1,27 +1,36 @@
-import React from "react";
+import React, { useState } from "react";
 import { Link } from "react-router";
 import { useForm } from "react-hook-form";
-import { FcGoogle } from "react-icons/fc";
-import axios from 'axios'
+import useAuth from "../../../hooks/useAuth";
+import uploadImageToImgBB from "../../../utils/uploadImageToImgBB";
+import successToast from "../../../utils/successToast";
+import errorToast from "../../../utils/errorToast";
+import LoginWithGoogle from "../components/LoginWithGoogle";
 const Register = () => {
+  const [pending, setPending] = useState(false)
+  const { userRegister, userUpdate } = useAuth()
   const {
     register,
     handleSubmit,
     formState: { errors },
   } = useForm();
-  const apiKey = import.meta.env.VITE_IMGBB_API_KEY
+
   const onSubmit = async (data) => {
-    const photoFile = data?.photo[0]
-    const formData = new FormData()
-    formData.append("image", photoFile);
-    // console.log([...formData])
+    setPending(true)
+    const photoURL = await uploadImageToImgBB(data?.photo[0])
     try {
-      const { data } = await axios.post(`https://api.imgbb.com/1/upload?key=${apiKey}`, formData)
-      console.log(data?.data.url)
+      const result = await userRegister(data?.email, data?.password)
+      if (result.user) {
+        userUpdate({ displayName: data?.name, photoURL })
+          .then(() => successToast('Register Successful!', 'Your account has been created successfully.'))
+          .catch(error => errorToast(error))
+          setPending(false)
+      }
     } catch (error) {
-      console.log(error.code)
+      errorToast(error)
+      setPending(false)
     }
-    // TODO: Firebase Create User + Backend Save
+
   };
 
   return (
@@ -45,8 +54,8 @@ const Register = () => {
               type="text"
               placeholder="Enter your name"
               className={`w-full px-4 py-2.5 rounded-md bg-slate-50 duration-300 focus:outline-none ${errors.name
-                  ? "border border-red-400 focus:ring-2 focus:ring-red-300"
-                  : "border border-black/10 focus:ring-2 focus:ring-primary/30"
+                ? "border border-red-400 focus:ring-2 focus:ring-red-300"
+                : "border border-black/10 focus:ring-2 focus:ring-primary/30"
                 }`}
               {...register("name", { required: "Name is required" })}
             />
@@ -62,8 +71,8 @@ const Register = () => {
               type="email"
               placeholder="Enter your email"
               className={`w-full px-4 py-2.5 rounded-md bg-slate-50 duration-300 focus:outline-none ${errors.email
-                  ? "border border-red-400 focus:ring-2 focus:ring-red-300"
-                  : "border border-black/10 focus:ring-2 focus:ring-primary/30"
+                ? "border border-red-400 focus:ring-2 focus:ring-red-300"
+                : "border border-black/10 focus:ring-2 focus:ring-primary/30"
                 }`}
               {...register("email", {
                 required: "Email is required",
@@ -85,15 +94,15 @@ const Register = () => {
               type="password"
               placeholder="Create a password"
               className={`w-full px-4 py-2.5 rounded-md bg-slate-50 duration-300 focus:outline-none ${errors.password
-                  ? "border border-red-400 focus:ring-2 focus:ring-red-300"
-                  : "border border-black/10 focus:ring-2 focus:ring-primary/30"
+                ? "border border-red-400 focus:ring-2 focus:ring-red-300"
+                : "border border-black/10 focus:ring-2 focus:ring-primary/30"
                 }`}
               {...register("password", {
                 required: "Password is required",
                 pattern: {
                   value: /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)[A-Za-z\d!@#$%^&*()_+\-={}\[\]|:;"'<>,.?/~`]{6,}$/,
                   message:
-                    "Must contain uppercase, lowercase & number (min 6 chars, no symbols).",
+                    "Must contain uppercase, lowercase & number.",
                 },
               })}
             />
@@ -110,8 +119,8 @@ const Register = () => {
               type="file"
               accept="image/*"
               className={`w-full px-4 py-2.5 rounded-md bg-slate-50 border ${errors.photo
-                  ? "border-red-400 focus:ring-2 focus:ring-red-300"
-                  : "border-black/10 focus:ring-2 focus:ring-primary/30"
+                ? "border-red-400 focus:ring-2 focus:ring-red-300"
+                : "border-black/10 focus:ring-2 focus:ring-primary/30"
                 } duration-300`}
               {...register("photo", { required: "Photo upload is required" })}
             />
@@ -125,7 +134,7 @@ const Register = () => {
             type="submit"
             className="btn btn-primary w-full text-sm mt-4 duration-300"
           >
-            Create Account
+            {pending?<span className="animate-pulse">Loading...</span>:'Register'}
           </button>
         </form>
 
@@ -137,13 +146,7 @@ const Register = () => {
         </div>
 
         {/* Google Sign-in */}
-        <button
-          onClick={() => console.log("Google sign-in")}
-          className="w-full border border-black/10 rounded-md py-2.5 flex items-center justify-center gap-2 hover:bg-slate-50 duration-300"
-        >
-          <FcGoogle className="text-xl" />
-          <span className="text-sm font-medium text-secondary">Continue with Google</span>
-        </button>
+        <LoginWithGoogle />
 
         {/* Already have account */}
         <p className="text-center text-sm text-slate-600 mt-6">
