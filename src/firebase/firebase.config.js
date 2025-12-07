@@ -2,12 +2,12 @@ import { initializeApp } from "firebase/app";
 import { getAuth } from "firebase/auth";
 
 const firebaseConfig = {
-  apiKey: "AIzaSyBw0CzLp8IkLI4Nzjie7pb3PzKM47sXI5Q",
-  authDomain: "scholarlink-9caf2.firebaseapp.com",
-  projectId: "scholarlink-9caf2",
-  storageBucket: "scholarlink-9caf2.firebasestorage.app",
-  messagingSenderId: "331458197394",
-  appId: "1:331458197394:web:529309dd125bb8bef4f34b"
+  apiKey: import.meta.env.VITE_apiKey,
+  authDomain: import.meta.env.VITE_authDomain,
+  projectId: import.meta.env.VITE_projectId,
+  storageBucket: import.meta.env.VITE_storageBucket,
+  messagingSenderId: import.meta.env.VITE_messagingSenderId,
+  appId: import.meta.env.VITE_appId,
 };
 
 const app = initializeApp(firebaseConfig);
