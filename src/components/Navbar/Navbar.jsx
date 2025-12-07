@@ -58,7 +58,7 @@ const Navbar = () => {
         <div className="lg:hidden flex items-center gap-2">
           <button
             onClick={toggleMenu}
-            className="inline-flex items-center justify-center rounded-md border border-slate-200 p-2 text-slate-700 hover:bg-slate-100 duration-300"
+            className="inline-flex items-center justify-center rounded-md border border-slate-200 p-2 text-slate-700 hover:bg-slate-100 duration-300 cursor-pointer"
           >
             {isOpen ? <FiX className="text-lg" /> : <FiMenu className="text-lg" />}
           </button>
@@ -81,7 +81,7 @@ const Navbar = () => {
           <Logo />
           <button
             onClick={closeMenu}
-            className="inline-flex items-center justify-center rounded-md p-2 text-slate-600 hover:bg-slate-100 duration-300"
+            className="inline-flex items-center justify-center cursor-pointer rounded-md p-2 text-slate-600 hover:bg-slate-100 duration-300"
           >
             <FiX className="text-lg" />
           </button>
