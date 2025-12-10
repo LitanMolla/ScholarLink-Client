@@ -37,7 +37,7 @@ const Routes = createBrowserRouter([
       { path: "login", element: <Login /> },
       { path: "register", element: <Register /> },
 
-      // payment (must be logged in)
+      // payment (must be logged in
       {
         path: "checkout/:id",
         element: (
@@ -46,6 +46,7 @@ const Routes = createBrowserRouter([
           </PrivateRoute>
         ),
       },
+
       {
         path: "payment/success",
         element: (

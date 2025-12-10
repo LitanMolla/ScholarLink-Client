@@ -1,5 +1,5 @@
 import React from "react";
-import { Link, useParams } from "react-router";
+import { useNavigate, useParams } from "react-router";
 import {
   FiArrowLeft,
   FiMapPin,
@@ -10,15 +10,16 @@ import { FaStar } from "react-icons/fa";
 import { useQuery } from "@tanstack/react-query";
 import useAxiosPublic from "../../../hooks/useAxiosPublic";
 import LoadingSpinner from "../../../components/LoadingSpinner/LoadingSpinner";
+import demoReviews from "../../../utils/demoReviews";
+import useAuth from "../../../hooks/useAuth";
 
 const ScholarshipDetails = () => {
   const axiosPublic = useAxiosPublic();
   const { id } = useParams();
+  const { user } = useAuth();
+  const navigate = useNavigate();
 
-  const {
-    data: scholarship = {},
-    isPending,
-  } = useQuery({
+  const { data: scholarship = {}, isPending } = useQuery({
     queryKey: ["scholarship", id],
     queryFn: async () => {
       const res = await axiosPublic.get(`/scholarships/${id}`);
@@ -28,49 +29,35 @@ const ScholarshipDetails = () => {
 
   if (isPending) return <LoadingSpinner />;
 
-  const demoReviews = [
-    {
-      id: 1,
-      name: "Ayesha Rahman",
-      degree: "Masters in Computer Science",
-      rating: 5,
-      comment:
-        "The scholarship not only covered my tuition but also gave me great networking opportunities and mentorship.",
-      date: "Jan 10, 2025",
-    },
-    {
-      id: 2,
-      name: "Tanvir Ahmed",
-      degree: "PhD in Data Science",
-      rating: 4,
-      comment:
-        "The application process was competitive but well structured. ScholarLink helped me understand the requirements clearly.",
-      date: "Dec 22, 2024",
-    },
-    {
-      id: 3,
-      name: "Sara Islam",
-      degree: "Masters in Electrical Engineering",
-      rating: 5,
-      comment:
-        "Amazing support and global exposure. Highly recommended for students who want a challenging but rewarding experience.",
-      date: "Nov 05, 2024",
-    },
-  ];
+  // 🔥 MAIN FIX — DB er real field + camelCase fallback
+  const applicationFees = Number(
+    scholarship.applicationFees ?? scholarship.application_fees ?? 0
+  );
 
-  const renderStars = (count) => {
-    return (
-      <div className="flex items-center gap-0.5">
-        {[1, 2, 3, 4, 5].map((n) => (
-          <FaStar
-            key={n}
-            className={`text-[11px] ${
-              n <= count ? "text-yellow-400" : "text-slate-300"
-            }`}
-          />
-        ))}
-      </div>
-    );
+  const serviceCharge = Number(
+    scholarship.serviceCharge ?? scholarship.service_charge ?? 0
+  );
+
+  const renderStars = (count) => (
+    <div className="flex items-center gap-0.5">
+      {[1, 2, 3, 4, 5].map((n) => (
+        <FaStar
+          key={n}
+          className={`text-[11px] ${
+            n <= count ? "text-yellow-400" : "text-slate-300"
+          }`}
+        />
+      ))}
+    </div>
+  );
+
+  const handleApply = () => {
+    if (!user) {
+      return navigate("/login", {
+        state: { from: `/scholarships-details/${id}` },
+      });
+    }
+    navigate(`/checkout/${id}`);
   };
 
   return (
@@ -88,10 +75,9 @@ const ScholarshipDetails = () => {
 
         {/* Main card */}
         <div className="mt-5 rounded-2xl border border-black/10 bg-white shadow-sm p-5 sm:p-6 lg:p-8 space-y-6">
-          {/* Header with small rounded logo */}
-          <div className="flex items-start justify-between gap-3">
+          {/* Header */}
+          <div className="flex items-start gap-3">
             <div className="flex items-center gap-3">
-              {/* Small rounded logo-style image */}
               <div className="h-12 w-12 rounded-full overflow-hidden border border-black/10 shrink-0">
                 <img
                   src={scholarship.image}
@@ -114,18 +100,17 @@ const ScholarshipDetails = () => {
             </div>
           </div>
 
-          {/* Summary info */}
+          {/* Summary */}
           <div className="space-y-4">
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-sm">
+
               <div className="space-y-1">
                 <p className="text-[11px] uppercase tracking-wide text-slate-500">
                   Location
                 </p>
                 <p className="flex items-center gap-1.5 text-slate-800">
                   <FiMapPin className="text-primary text-sm" />
-                  <span>
-                    {scholarship.city}, {scholarship.country}
-                  </span>
+                  {scholarship.city}, {scholarship.country}
                 </p>
               </div>
 
@@ -149,33 +134,39 @@ const ScholarshipDetails = () => {
                 </p>
                 <p className="flex items-center gap-1.5 text-slate-800">
                   <FiAward className="text-primary text-sm" />
-                  <span>#{scholarship.world_rank}</span>
+                  #{scholarship.world_rank}
                 </p>
               </div>
 
-              {/* Optional: Deadline */}
+              {/* Deadline */}
               {scholarship.deadline && (
                 <div className="space-y-1">
-                  <p className="text-[11px] uppercase tracking-wide text-slate-500">
-                    Deadline
-                  </p>
+                  <p className="text-[11px] uppercase tracking-wide text-slate-500">Deadline</p>
                   <p className="text-slate-800">{scholarship.deadline}</p>
                 </div>
               )}
 
-              {/* Optional: Application Fees */}
-              {scholarship.applicationFees && (
+              {/* ✅ Application Fees */}
+              {applicationFees > 0 && (
                 <div className="space-y-1">
                   <p className="text-[11px] uppercase tracking-wide text-slate-500">
                     Application Fees
                   </p>
-                  <p className="text-slate-800">
-                    ${scholarship.applicationFees}
-                  </p>
+                  <p className="text-slate-800">${applicationFees}</p>
                 </div>
               )}
 
-              {/* Optional: Coverage / Stipend */}
+              {/* ✅ Service Charge */}
+              {serviceCharge > 0 && (
+                <div className="space-y-1">
+                  <p className="text-[11px] uppercase tracking-wide text-slate-500">
+                    Service Charge
+                  </p>
+                  <p className="text-slate-800">${serviceCharge}</p>
+                </div>
+              )}
+
+              {/* Coverage */}
               {scholarship.coverage && (
                 <div className="space-y-1">
                   <p className="text-[11px] uppercase tracking-wide text-slate-500">
@@ -184,9 +175,10 @@ const ScholarshipDetails = () => {
                   <p className="text-slate-800">{scholarship.coverage}</p>
                 </div>
               )}
+
             </div>
 
-            {/* Tuition fees box */}
+            {/* Tuition Fees */}
             <div className="flex items-center justify-between rounded-lg border border-dashed border-black/15 px-3 py-3 text-xs sm:text-sm">
               <span className="flex items-center gap-1.5 text-slate-600">
                 <FiDollarSign className="text-primary text-sm" />
@@ -205,31 +197,28 @@ const ScholarshipDetails = () => {
             </h2>
             <p className="text-sm text-slate-700 leading-relaxed">
               This program supports outstanding students for advanced studies at{" "}
-              {scholarship.university_name}. It aims to develop future leaders
-              with strong academic background and multidisciplinary skills.
-              Applicants are encouraged to review all requirements carefully
-              before applying.
+              {scholarship.university_name}.
             </p>
           </div>
 
-          {/* Bottom bar */}
+          {/* Apply Button */}
           <div className="pt-4 border-t border-slate-100 flex flex-col sm:flex-row gap-3 sm:items-center sm:justify-between">
             <p className="text-[11px] text-slate-500 max-w-xs">
-              Make sure your documents and eligibility match the scholarship
-              requirements before starting your application.
+              Make sure your eligibility matches before applying.
             </p>
-            <Link
-              to={`/checkout/${scholarship._id}`}
-              className="btn btn-primary text-sm w-full sm:w-auto text-center duration-300"
+
+            <button
+              onClick={handleApply}
+              className="btn btn-primary text-sm w-full sm:w-auto"
             >
               Apply for Scholarship
-            </Link>
+            </button>
           </div>
         </div>
 
-        {/* 🔹 Reviews Section */}
+        {/* Reviews */}
         <div className="mt-8 space-y-4">
-          <div className="flex items-center justify-between gap-2">
+          <div className="flex items-center justify-between">
             <h2 className="text-sm sm:text-base font-semibold text-secondary">
               Student Reviews
             </h2>
@@ -238,49 +227,33 @@ const ScholarshipDetails = () => {
             </p>
           </div>
 
-          <div className="space-y-3">
-            {demoReviews.map((review) => (
-              <div
-                key={review.id}
-                className="rounded-xl border border-black/10 bg-white px-4 py-3.5 sm:px-5 sm:py-4 shadow-[0_4px_10px_rgba(15,23,42,0.02)]"
-              >
-                <div className="flex items-start gap-3">
-                  {/* Avatar */}
-                  <div className="mt-0.5 inline-flex h-9 w-9 items-center justify-center rounded-full bg-primary/10 text-primary text-sm font-semibold">
-                    {review.name.charAt(0)}
-                  </div>
+          {demoReviews.map((review) => (
+            <div
+              key={review.id}
+              className="rounded-xl border border-black/10 bg-white px-4 py-3.5 shadow-sm"
+            >
+              <div className="flex items-start gap-3">
+                <div className="h-9 w-9 flex items-center justify-center rounded-full bg-primary/10 text-primary text-sm font-semibold">
+                  {review.name.charAt(0)}
+                </div>
 
-                  <div className="flex-1 space-y-1">
-                    <div className="flex flex-wrap items-center justify-between gap-1">
-                      <div>
-                        <p className="text-sm font-medium text-secondary">
-                          {review.name}
-                        </p>
-                        <p className="text-[11px] text-slate-500">
-                          {review.degree}
-                        </p>
-                      </div>
-                      <div className="flex flex-col items-end gap-0.5">
-                        {renderStars(review.rating)}
-                        <span className="text-[10px] text-slate-400">
-                          {review.date}
-                        </span>
-                      </div>
+                <div className="flex-1">
+                  <div className="flex justify-between">
+                    <div>
+                      <p className="text-sm font-medium text-secondary">{review.name}</p>
+                      <p className="text-[11px] text-slate-500">{review.degree}</p>
                     </div>
-
-                    <p className="text-xs sm:text-sm text-slate-700 leading-relaxed mt-2">
-                      {review.comment}
-                    </p>
+                    {renderStars(review.rating)}
                   </div>
+
+                  <p className="text-xs sm:text-sm text-slate-700 mt-2">
+                    {review.comment}
+                  </p>
                 </div>
               </div>
-            ))}
-          </div>
+            </div>
+          ))}
 
-          <p className="text-[11px] text-slate-500">
-            * These are sample reviews for design purposes. Later this section
-            will be connected with real data from the server.
-          </p>
         </div>
       </div>
     </section>

@@ -15,6 +15,9 @@ const ScholarshipCard = ({ scholarship }) => {
     tuition_fees,
   } = scholarship || {};
 
+  const handleApply = () => {
+
+  }
   return (
     <div className="flex h-full flex-col rounded-xl border border-black/10 bg-white p-4 hover:border-primary/40 hover:bg-white duration-300">
 
