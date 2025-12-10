@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import { Link, useLocation, useNavigate } from "react-router";
 import { useForm } from "react-hook-form";
 import useAuth from "../../../hooks/useAuth";
@@ -8,8 +8,14 @@ import LoginWithGoogle from "../components/LoginWithGoogle";
 
 const Login = () => {
   const [pending, setPending] = useState(false);
-  const { userLogin } = useAuth();
-
+  const { userLogin, user } = useAuth();
+  const navigate = useNavigate()
+  const { state } = useLocation()
+  useEffect(() => {
+    if (user) {
+      navigate(state || '/')
+    }
+  }, [state,user])
   const {
     register,
     handleSubmit,
@@ -54,11 +60,10 @@ const Login = () => {
             <input
               type="email"
               placeholder="Enter your email"
-              className={`w-full px-4 py-2.5 rounded-md bg-slate-50 duration-300 focus:outline-none ${
-                errors.email
+              className={`w-full px-4 py-2.5 rounded-md bg-slate-50 duration-300 focus:outline-none ${errors.email
                   ? "border border-red-400 focus:ring-2 focus:ring-red-300"
                   : "border border-black/10 focus:ring-2 focus:ring-primary/30"
-              }`}
+                }`}
               {...register("email", {
                 required: "Email is required",
                 pattern: {
@@ -82,11 +87,10 @@ const Login = () => {
             <input
               type="password"
               placeholder="Enter your password"
-              className={`w-full px-4 py-2.5 rounded-md bg-slate-50 duration-300 focus:outline-none ${
-                errors.password
+              className={`w-full px-4 py-2.5 rounded-md bg-slate-50 duration-300 focus:outline-none ${errors.password
                   ? "border border-red-400 focus:ring-2 focus:ring-red-300"
                   : "border border-black/10 focus:ring-2 focus:ring-primary/30"
-              }`}
+                }`}
               {...register("password", {
                 required: "Password is required",
               })}

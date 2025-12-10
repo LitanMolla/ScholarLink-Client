@@ -19,3 +19,6 @@
 .btn{
   @apply px-6 py-2.5 rounded-md duration-300 cursor-pointer
 }
+button{
+  cursor: pointer;
+}

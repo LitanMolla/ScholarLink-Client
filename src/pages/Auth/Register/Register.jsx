@@ -1,14 +1,23 @@
-import React, { useState } from "react";
-import { Link } from "react-router";
+import React, { useEffect, useState } from "react";
+import { Link, useLocation, useNavigate } from "react-router";
 import { useForm } from "react-hook-form";
 import useAuth from "../../../hooks/useAuth";
 import uploadImageToImgBB from "../../../utils/uploadImageToImgBB";
 import successToast from "../../../utils/successToast";
 import errorToast from "../../../utils/errorToast";
 import LoginWithGoogle from "../components/LoginWithGoogle";
+import useAxiosPublic from "../../../hooks/useAxiosPublic";
 const Register = () => {
   const [pending, setPending] = useState(false)
-  const { userRegister, userUpdate } = useAuth()
+  const { userRegister, userUpdate, user } = useAuth()
+  const axiosPublic = useAxiosPublic()
+  const navigate = useNavigate()
+  const { state } = useLocation()
+  useEffect(() => {
+    if (user) {
+      navigate(state || '/')
+    }
+  }, [state])
   const {
     register,
     handleSubmit,
@@ -24,7 +33,8 @@ const Register = () => {
         userUpdate({ displayName: data?.name, photoURL })
           .then(() => successToast('Register Successful!', 'Your account has been created successfully.'))
           .catch(error => errorToast(error))
-          setPending(false)
+        axiosPublic.post('/users', { photoURL, email: result.user.email, name: data?.name })
+        setPending(false)
       }
     } catch (error) {
       errorToast(error)
@@ -134,7 +144,7 @@ const Register = () => {
             type="submit"
             className="btn btn-primary w-full text-sm mt-4 duration-300"
           >
-            {pending?<span className="animate-pulse">Loading...</span>:'Register'}
+            {pending ? <span className="animate-pulse">Loading...</span> : 'Register'}
           </button>
         </form>
 

@@ -1,60 +1,22 @@
 import React from "react";
-import { Link } from "react-router";
+import { data, Link } from "react-router";
 import { FiArrowRight } from "react-icons/fi";
 import ScholarshipCard from "../components/ScholarshipCard";
+import { useQuery } from "@tanstack/react-query";
+import useAxiosPublic from "../../../hooks/useAxiosPublic";
+import LoadingSpinner from "../../../components/LoadingSpinner/LoadingSpinner";
 
-const dummyScholarships = [
-  {
-    id: "sch-1",
-    title: "Global Excellence Scholarship",
-    country: "Canada",
-    level: "Undergraduate",
-    fee: "$0 Application Fee",
-    deadline: "15 Feb 2026",
-  },
-  {
-    id: "sch-2",
-    title: "European STEM Talent Grant",
-    country: "Germany",
-    level: "Masters",
-    fee: "$10 Application Fee",
-    deadline: "28 Jan 2026",
-  },
-  {
-    id: "sch-3",
-    title: "Asia Pacific Merit Scholarship",
-    country: "Singapore",
-    level: "Undergraduate",
-    fee: "$5 Application Fee",
-    deadline: "10 Mar 2026",
-  },
-  {
-    id: "sch-4",
-    title: "Research Impact Fellowship",
-    country: "Netherlands",
-    level: "PhD",
-    fee: "$0 Application Fee",
-    deadline: "05 Feb 2026",
-  },
-  {
-    id: "sch-5",
-    title: "Emerging Leaders Award",
-    country: "United Kingdom",
-    level: "Masters",
-    fee: "$15 Application Fee",
-    deadline: "20 Feb 2026",
-  },
-  {
-    id: "sch-6",
-    title: "Future Innovators Scholarship",
-    country: "Australia",
-    level: "Undergraduate",
-    fee: "$0 Application Fee",
-    deadline: "01 Mar 2026",
-  },
-];
 
 const TopScholarships = () => {
+  const axiosPublic = useAxiosPublic()
+  const { data:top_scholarships=[], isError, isPending } = useQuery({
+    queryKey: ['top-scholarships'],
+    queryFn: async () => {
+      const {data} = await axiosPublic.get('/top-scholarships')
+      return data.data
+    }
+  })
+  if (isPending) return <LoadingSpinner/>
   return (
     <section className="py-10 lg:py-14">
       <div className="container space-y-6">
@@ -78,7 +40,7 @@ const TopScholarships = () => {
 
         {/* Cards */}
         <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
-          {dummyScholarships.map((item,i) => (
+          {top_scholarships?.map((item, i) => (
             <ScholarshipCard key={i} scholarship={item} />
           ))}
         </div>

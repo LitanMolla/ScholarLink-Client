@@ -31,7 +31,7 @@ const Routes = createBrowserRouter([
       // public routes
       { index: true, element: <Home /> },
       { path: "scholarships", element: <AllScholarships /> },
-      { path: "scholarships/:id", element: <ScholarshipDetails /> },
+      { path: "scholarships-details/:id", element: <ScholarshipDetails /> },
 
       // auth
       { path: "login", element: <Login /> },
