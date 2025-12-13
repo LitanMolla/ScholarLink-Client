@@ -16,9 +16,9 @@ const Register = () => {
   const { state } = useLocation()
   useEffect(() => {
     if (user) {
-      navigate(state || '/')
+      navigate(state?.from || '/')
     }
-  }, [state])
+  }, [state?.from, user])
   const {
     register,
     handleSubmit,
@@ -34,7 +34,7 @@ const Register = () => {
         userUpdate({ displayName: data?.name, photoURL })
           .then(() => successToast('Register Successful!', 'Your account has been created successfully.'))
           .catch(error => errorToast(error))
-          navigate(state || '/')
+        navigate(state?.from|| '/')
         axiosPublic.post('/users', { photoURL, email: result.user.email, name: data?.name })
         setPending(false)
       }
@@ -158,7 +158,7 @@ const Register = () => {
         </div>
 
         {/* Google Sign-in */}
-        <LoginWithGoogle />
+        <LoginWithGoogle state={state} />
 
         {/* Already have account */}
         <p className="text-center text-sm text-slate-600 mt-6">

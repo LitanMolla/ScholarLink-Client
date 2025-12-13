@@ -4,13 +4,13 @@ import useAuth from "../../../hooks/useAuth";
 import errorToast from "../../../utils/errorToast";
 import successAlert from "../../../utils/successToast";
 import useAxiosPublic from "../../../hooks/useAxiosPublic";
-import setToken from "../../../utils/setToken";
+import { Navigate, useNavigation } from "react-router";
 
-const LoginWithGoogle = () => {
+const LoginWithGoogle = ({state}) => {
   const [pending, setPending] = useState(false);
   const { googleLogin } = useAuth();
   const axiosPublic = useAxiosPublic();
-
+  const navigate = useNavigation()
   const handleLogin = async () => {
     setPending(true);
     try {
@@ -29,6 +29,7 @@ const LoginWithGoogle = () => {
           "Login Successful!",
           "Welcome back! You’re now logged in."
         );
+        <Navigate to={state?.from||'/'} />
       }
     } catch (error) {
       errorToast(error);

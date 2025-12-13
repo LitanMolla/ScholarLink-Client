@@ -14,7 +14,7 @@ const Login = () => {
   const { state } = useLocation()
   useEffect(() => {
     if (user) {
-      navigate(state || '/')
+      navigate(state?.from || '/')
     }
   }, [state,user])
   const {
@@ -32,7 +32,7 @@ const Login = () => {
           "Login Successful!",
           "Welcome back! You’re now logged in."
         );
-        navigate(state||'/')
+        navigate(state?.from||'/')
       }
     } catch (error) {
       errorToast(error);
@@ -131,7 +131,7 @@ const Login = () => {
         {/* Register link */}
         <p className="text-center text-sm text-slate-600 mt-6">
           Don&apos;t have an account?{" "}
-          <Link
+          <Link state={state}
             to="/register"
             className="text-primary hover:underline duration-300"
           >
