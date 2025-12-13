@@ -122,7 +122,7 @@ const AllScholarships = () => {
             <div className="relative">
               <FiSearch className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 text-sm" />
               <input
-                type="text"
+                type="search"
                 placeholder="e.g. Computer Science, Stanford, Masters"
                 value={searchTerm}
                 onChange={(e) => {

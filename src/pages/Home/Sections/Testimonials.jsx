@@ -1,5 +1,6 @@
 import React from "react";
 import { FaQuoteLeft } from "react-icons/fa"; // FIXED ICON
+import BottomToTop from "../../../components/animation/BottomToTop";
 
 const testimonials = [
   {
@@ -30,7 +31,8 @@ const testimonials = [
 
 const Testimonials = () => {
   return (
-    <section className="py-12 lg:py-16">
+    <BottomToTop>
+<section className="py-12 lg:py-16">
       <div className="container space-y-8">
         
         {/* Header */}
@@ -75,6 +77,8 @@ const Testimonials = () => {
 
       </div>
     </section>
+    </BottomToTop>
+    
   );
 };
 
