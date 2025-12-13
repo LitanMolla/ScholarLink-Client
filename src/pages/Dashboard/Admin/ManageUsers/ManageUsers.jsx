@@ -100,9 +100,9 @@ const ManageUsers = () => {
 
       {/* Desktop table */}
       <div className="hidden md:block w-full">
-        <div className="overflow-x-auto rounded-xl border border-black/10 bg-white">
-          <table className="min-w-[950px] text-xs sm:text-sm">
-            <thead className="bg-slate-50 text-[11px] uppercase text-slate-500">
+        <div className="overflow-x-auto rounded-xl border border-black/10 bg-white ">
+          <table className="w-full text-xs sm:text-sm ">
+            <thead className="bg-slate-50 text-[11px] uppercase text-slate-500 ">
               <tr>
                 <th className="px-3 py-2 text-left">User</th>
                 <th className="px-3 py-2 text-left">Email</th>

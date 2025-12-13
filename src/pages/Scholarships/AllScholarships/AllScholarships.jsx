@@ -3,7 +3,7 @@ import { FiSearch } from "react-icons/fi";
 import { useQuery } from "@tanstack/react-query";
 import ScholarshipCard from "../../Home/components/ScholarshipCard";
 import useAxiosPublic from "../../../hooks/useAxiosPublic";
-import LoadingSpinner from "../../../components/LoadingSpinner/LoadingSpinner";
+import Spinner from "../../../components/Spinner/Spinner";
 
 const AllScholarships = () => {
   const axiosPublic = useAxiosPublic();
@@ -206,7 +206,7 @@ const AllScholarships = () => {
         {isPending ? (
           // 🔹 First time load: শুধু নিচে loader
           <div className="py-10 flex justify-center">
-            <LoadingSpinner />
+            <Spinner />
           </div>
         ) : scholarships.length === 0 ? (
           <div className="rounded-xl border border-dashed border-black/15 bg-white py-10 text-center">

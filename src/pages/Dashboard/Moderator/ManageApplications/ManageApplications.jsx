@@ -129,11 +129,11 @@ const ManageApplications = () => {
 
                   <td className="px-3 py-3">{app.universityName}</td>
                   <td className="px-3 py-3">{app.degree}</td>
-                  <td className="px-3 py-3">{app.paymentStatus}</td>
+                  <td className="px-3 py-3 capitalize">{app.paymentStatus}</td>
 
                   <td className="px-3 py-3">
                     <span
-                      className={`inline-flex px-2 py-1 rounded-full text-[10px] font-medium ${statusBadge(
+                      className={`inline-flex px-2 py-1 rounded-full text-[10px] font-medium capitalize ${statusBadge(
                         app.applicationStatus
                       )}`}
                     >
@@ -204,7 +204,7 @@ const ManageApplications = () => {
                 </p>
               </div>
               <span
-                className={`px-2 py-1 rounded-full text-[10px] font-medium ${statusBadge(
+                className={`px-2 py-1 rounded-full text-[10px] capitalize font-medium ${statusBadge(
                   app.applicationStatus
                 )}`}
               >

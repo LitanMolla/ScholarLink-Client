@@ -66,7 +66,7 @@ const ManageScholarships = () => {
     if (!result.isConfirmed) return;
 
     try {
-      await axiosPublic.delete(`/scholarships/${id}`);
+      await axiosSecure.delete(`/scholarships/${id}`);
       Swal.fire({
         icon: "success",
         title: "Deleted",
@@ -116,7 +116,7 @@ const ManageScholarships = () => {
 
   return (
     <section className="py-6 w-full space-y-4">
-      {  isPending && <p>Loading...</p>}
+      {isPending && <p>Loading...</p>}
       {/* Header */}
       <div className="flex flex-col sm:flex-row gap-3 sm:items-center sm:justify-between">
         <div>
@@ -141,7 +141,7 @@ const ManageScholarships = () => {
       {/* Desktop table (md+) */}
       <div className="hidden md:block w-full">
         <div className="w-full overflow-x-auto rounded-xl border border-black/10 bg-white">
-          <table className="min-w-[1100px] text-xs sm:text-sm">
+          <table className="w-full text-xs sm:text-sm">
             <thead className="bg-slate-50 text-[11px] uppercase text-slate-500">
               <tr>
                 <th className="px-3 py-2 text-left">Scholarship</th>
