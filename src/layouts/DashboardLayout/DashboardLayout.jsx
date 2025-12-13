@@ -1,6 +1,5 @@
-// src/layouts/DashboardLayout/DashboardLayout.jsx
 import React, { useState } from "react";
-import { NavLink, Link, Outlet } from "react-router";
+import { NavLink, Outlet } from "react-router";
 import {
   FiMenu,
   FiX,
@@ -14,9 +13,13 @@ import {
 } from "react-icons/fi";
 import useAuth from "../../hooks/useAuth";
 import Logo from "../../components/ui/Logo";
+import useRole from "../../hooks/useRole";
+import LoadingSpinner from "../../components/LoadingSpinner/LoadingSpinner";
 
 const DashboardLayout = () => {
   const { user } = useAuth();
+  const { role, roleLoading } = useRole();
+
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
 
   const toggleSidebar = () => setIsSidebarOpen((prev) => !prev);
@@ -27,21 +30,63 @@ const DashboardLayout = () => {
   const iconClasses = "text-[17px]";
 
   const studentLinks = [
-    { to: "/dashboard/my-profile", label: "My Profile", icon: <FiUser className={iconClasses} /> },
-    { to: "/dashboard/my-applications", label: "My Applications", icon: <FiFileText className={iconClasses} /> },
-    { to: "/dashboard/my-reviews", label: "My Reviews", icon: <FiStar className={iconClasses} /> },
+    {
+      to: "/dashboard/my-profile",
+      label: "My Profile",
+      icon: <FiUser className={iconClasses} />,
+    },
+    {
+      to: "/dashboard/my-applications",
+      label: "My Applications",
+      icon: <FiFileText className={iconClasses} />,
+    },
+    {
+      to: "/dashboard/my-reviews",
+      label: "My Reviews",
+      icon: <FiStar className={iconClasses} />,
+    },
+
   ];
 
   const moderatorLinks = [
-    { to: "/dashboard/manage-applications", label: "Manage Applications", icon: <FiLayers className={iconClasses} /> },
-    { to: "/dashboard/all-reviews", label: "All Reviews", icon: <FiStar className={iconClasses} /> },
+    {
+      to: "/dashboard/my-profile",
+      label: "My Profile",
+      icon: <FiUser className={iconClasses} />,
+    },
+    {
+      to: "/dashboard/manage-applications",
+      label: "Manage Applications",
+      icon: <FiLayers className={iconClasses} />,
+    },
+    {
+      to: "/dashboard/all-reviews",
+      label: "All Reviews",
+      icon: <FiStar className={iconClasses} />,
+    },
   ];
 
   const adminLinks = [
-    { to: "/dashboard/add-scholarship", label: "Add Scholarship", icon: <FiFileText className={iconClasses} /> },
-    { to: "/dashboard/manage-scholarships", label: "Manage Scholarships", icon: <FiLayers className={iconClasses} /> },
-    { to: "/dashboard/manage-users", label: "Manage Users", icon: <FiUsers className={iconClasses} /> },
-    { to: "/dashboard/analytics", label: "Analytics", icon: <FiBarChart2 className={iconClasses} /> },
+    {
+      to: "/dashboard/add-scholarship",
+      label: "Add Scholarship",
+      icon: <FiFileText className={iconClasses} />,
+    },
+    {
+      to: "/dashboard/manage-scholarships",
+      label: "Manage Scholarships",
+      icon: <FiLayers className={iconClasses} />,
+    },
+    {
+      to: "/dashboard/manage-users",
+      label: "Manage Users",
+      icon: <FiUsers className={iconClasses} />,
+    },
+    {
+      to: "/dashboard/analytics",
+      label: "Analytics",
+      icon: <FiBarChart2 className={iconClasses} />,
+    },
   ];
 
   const renderLink = (item) => (
@@ -50,10 +95,9 @@ const DashboardLayout = () => {
       to={item.to}
       onClick={closeSidebar}
       className={({ isActive }) =>
-        `${linkBaseClasses} ${
-          isActive
-            ? "bg-primary/10 text-primary"
-            : "text-slate-600 hover:bg-slate-100 hover:text-secondary"
+        `${linkBaseClasses} ${isActive
+          ? "bg-primary/10 text-primary"
+          : "text-slate-600 hover:bg-slate-100 hover:text-secondary"
         }`
       }
     >
@@ -62,6 +106,15 @@ const DashboardLayout = () => {
     </NavLink>
   );
 
+  const subtitle =
+    role === "Admin"
+      ? "Manage scholarships, users & analytics"
+      : role === "Moderator"
+        ? "Manage applications & reviews"
+        : "Manage your profile, applications & reviews";
+
+  if (roleLoading) return <LoadingSpinner />;
+
   return (
     <div className="min-h-screen bg-slate-50 flex">
       {/* Sidebar - Desktop */}
@@ -69,25 +122,21 @@ const DashboardLayout = () => {
         {/* Brand */}
         <div className="h-16 border-b border-black/10 px-4 flex items-center gap-2">
           <Logo />
-          <span className="text-xs font-medium text-slate-500">
-            Dashboard
-          </span>
         </div>
 
         {/* Nav */}
-        <div className="flex-1 overflow-y-auto px-3 py-4 space-y-5">
+        <div className="flex-1 overflow-y-auto px-3 pt-4">
           {/* Back to Home */}
           <div>
-            <p className="px-2 mb-2 text-[11px] font-semibold uppercase tracking-wide text-slate-400">
-              Overview
+            <p className="px-2 text-[11px] font-semibold uppercase tracking-wide text-slate-400">
+              Dashboard
             </p>
             <NavLink
               to="/"
               className={({ isActive }) =>
-                `${linkBaseClasses} ${
-                  isActive
-                    ? "bg-primary/10 text-primary"
-                    : "text-slate-600 hover:bg-slate-100 hover:text-secondary"
+                `${linkBaseClasses} ${isActive
+                  ? "bg-primary/10 text-primary"
+                  : "text-slate-600 hover:bg-slate-100 hover:text-secondary"
                 }`
               }
             >
@@ -96,35 +145,26 @@ const DashboardLayout = () => {
             </NavLink>
           </div>
 
-          {/* Student */}
-          <div>
-            <p className="px-2 mb-2 text-[11px] font-semibold uppercase tracking-wide text-slate-400">
-              Student
-            </p>
-            <div className="space-y-1">
-              {studentLinks.map(renderLink)}
+          {/* Student (only Student) */}
+          {role === "Student" && (
+            <div>
+              <div className="space-y-1">{studentLinks.map(renderLink)}</div>
             </div>
-          </div>
+          )}
 
-          {/* Moderator */}
-          <div>
-            <p className="px-2 mb-2 text-[11px] font-semibold uppercase tracking-wide text-slate-400">
-              Moderator
-            </p>
-            <div className="space-y-1">
-              {moderatorLinks.map(renderLink)}
+          {/* Moderator (Moderator + Admin) */}
+          {(role === "Moderator" || role === "Admin") && (
+            <div>
+              <div className="space-y-1">{moderatorLinks.map(renderLink)}</div>
             </div>
-          </div>
+          )}
 
-          {/* Admin */}
-          <div>
-            <p className="px-2 mb-2 text-[11px] font-semibold uppercase tracking-wide text-slate-400">
-              Admin
-            </p>
-            <div className="space-y-1">
-              {adminLinks.map(renderLink)}
+          {/* Admin (only Admin) */}
+          {role === "Admin" && (
+            <div>
+              <div className="space-y-1">{adminLinks.map(renderLink)}</div>
             </div>
-          </div>
+          )}
         </div>
 
         {/* Sidebar Footer */}
@@ -135,22 +175,20 @@ const DashboardLayout = () => {
 
       {/* Sidebar - Mobile (Drawer) */}
       <div
-        className={`fixed inset-0 z-40 bg-black/40 lg:hidden transition-opacity ${
-          isSidebarOpen ? "opacity-100 pointer-events-auto" : "opacity-0 pointer-events-none"
-        }`}
+        className={`fixed inset-0 z-40 bg-black/40 lg:hidden transition-opacity ${isSidebarOpen
+            ? "opacity-100 pointer-events-auto"
+            : "opacity-0 pointer-events-none"
+          }`}
         onClick={closeSidebar}
       />
       <aside
-        className={`fixed top-0 left-0 z-50 h-full w-64 bg-white border-r border-black/10 shadow-xl transform transition-transform lg:hidden ${
-          isSidebarOpen ? "translate-x-0" : "-translate-x-full"
-        }`}
+        className={`fixed top-0 left-0 z-50 h-full w-64 bg-white border-r border-black/10 shadow-xl transform transition-transform lg:hidden ${isSidebarOpen ? "translate-x-0" : "-translate-x-full"
+          }`}
       >
         <div className="h-14 border-b border-black/10 px-4 flex items-center justify-between">
           <div className="flex items-center gap-2">
             <Logo />
-            <span className="text-xs font-medium text-slate-500">
-              Dashboard
-            </span>
+            <span className="text-xs font-medium text-slate-500">Dashboard</span>
           </div>
           <button
             onClick={closeSidebar}
@@ -170,10 +208,9 @@ const DashboardLayout = () => {
               to="/"
               onClick={closeSidebar}
               className={({ isActive }) =>
-                `${linkBaseClasses} ${
-                  isActive
-                    ? "bg-primary/10 text-primary"
-                    : "text-slate-600 hover:bg-slate-100 hover:text-secondary"
+                `${linkBaseClasses} ${isActive
+                  ? "bg-primary/10 text-primary"
+                  : "text-slate-600 hover:bg-slate-100 hover:text-secondary"
                 }`
               }
             >
@@ -183,34 +220,34 @@ const DashboardLayout = () => {
           </div>
 
           {/* Student */}
-          <div>
-            <p className="px-2 mb-2 text-[11px] font-semibold uppercase tracking-wide text-slate-400">
-              Student
-            </p>
-            <div className="space-y-1">
-              {studentLinks.map(renderLink)}
+          {role === "Student" && (
+            <div>
+              <p className="px-2 mb-2 text-[11px] font-semibold uppercase tracking-wide text-slate-400">
+                Student
+              </p>
+              <div className="space-y-1">{studentLinks.map(renderLink)}</div>
             </div>
-          </div>
+          )}
 
           {/* Moderator */}
-          <div>
-            <p className="px-2 mb-2 text-[11px] font-semibold uppercase tracking-wide text-slate-400">
-              Moderator
-            </p>
-            <div className="space-y-1">
-              {moderatorLinks.map(renderLink)}
+          {(role === "Moderator" || role === "Admin") && (
+            <div>
+              <p className="px-2 mb-2 text-[11px] font-semibold uppercase tracking-wide text-slate-400">
+                Moderator
+              </p>
+              <div className="space-y-1">{moderatorLinks.map(renderLink)}</div>
             </div>
-          </div>
+          )}
 
           {/* Admin */}
-          <div>
-            <p className="px-2 mb-2 text-[11px] font-semibold uppercase tracking-wide text-slate-400">
-              Admin
-            </p>
-            <div className="space-y-1">
-              {adminLinks.map(renderLink)}
+          {role === "Admin" && (
+            <div>
+              <p className="px-2 mb-2 text-[11px] font-semibold uppercase tracking-wide text-slate-400">
+                Admin
+              </p>
+              <div className="space-y-1">{adminLinks.map(renderLink)}</div>
             </div>
-          </div>
+          )}
         </div>
 
         <div className="border-t border-black/10 px-4 py-3 text-[11px] text-slate-400">
@@ -237,7 +274,7 @@ const DashboardLayout = () => {
                   Dashboard
                 </h1>
                 <p className="text-[11px] text-slate-500 hidden sm:block">
-                  Manage your profile, applications & reviews
+                  {subtitle}
                 </p>
               </div>
             </div>
@@ -255,7 +292,9 @@ const DashboardLayout = () => {
                         referrerPolicy="no-referrer"
                       />
                     ) : (
-                      (user.displayName || user.email || "U").charAt(0).toUpperCase()
+                      (user.displayName || user.email || "U")
+                        .charAt(0)
+                        .toUpperCase()
                     )}
                   </div>
                   <div className="hidden sm:flex flex-col">
@@ -282,10 +321,14 @@ const DashboardLayout = () => {
         {/* Footer */}
         <footer className="border-t border-black/10 bg-white/80 backdrop-blur">
           <div className="container py-3 text-[11px] text-slate-400 flex flex-wrap items-center justify-between gap-2">
-            <span>© {new Date().getFullYear()} ScholarLink. All rights reserved.</span>
+            <span>
+              © {new Date().getFullYear()} ScholarLink. All rights reserved.
+            </span>
             <span className="text-[10px]">
-              Built for{" "}
-              <span className="font-semibold text-secondary">Student · Moderator · Admin</span>
+              Role:{" "}
+              <span className="font-semibold text-secondary">
+                {role || "Student"}
+              </span>
             </span>
           </div>
         </footer>

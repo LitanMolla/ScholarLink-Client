@@ -39,6 +39,7 @@ const Navbar = () => {
       closeMenu();
       closeLogoutConfirm();
       navigate("/");
+      localStorage.removeItem("access-token");
     } catch (error) {
       console.error(error);
     }

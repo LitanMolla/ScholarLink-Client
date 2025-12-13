@@ -4,6 +4,7 @@ import useAuth from "../../../hooks/useAuth";
 import errorToast from "../../../utils/errorToast";
 import successAlert from "../../../utils/successToast";
 import useAxiosPublic from "../../../hooks/useAxiosPublic";
+import setToken from "../../../utils/setToken";
 
 const LoginWithGoogle = () => {
   const [pending, setPending] = useState(false);
@@ -24,7 +25,6 @@ const LoginWithGoogle = () => {
 
         // 🔹 Backend e user save / update
         await axiosPublic.post("/users", userInfo);
-
         successAlert(
           "Login Successful!",
           "Welcome back! You’re now logged in."

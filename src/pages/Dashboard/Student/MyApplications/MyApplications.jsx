@@ -8,11 +8,13 @@ import Swal from "sweetalert2";
 const MyApplications = () => {
   const axiosPublic = useAxiosPublic();
   const { user } = useAuth();
+
   const [selectedApp, setSelectedApp] = useState(null);
   const [showDetails, setShowDetails] = useState(false);
   const [showReviewModal, setShowReviewModal] = useState(false);
   const [reviewData, setReviewData] = useState({ rating: 5, comment: "" });
 
+  // ✅ Applications
   const {
     data: applications = [],
     isPending,
@@ -26,7 +28,25 @@ const MyApplications = () => {
     },
   });
 
-  if (isPending) return <LoadingSpinner />;
+  // ✅ My Reviews (to block duplicate review on UI)
+  const {
+    data: myReviews = [],
+    isPending: reviewsLoading,
+    refetch: refetchReviews,
+  } = useQuery({
+    queryKey: ["my-reviews", user?.email],
+    enabled: !!user?.email,
+    queryFn: async () => {
+      const res = await axiosPublic.get(`/my-reviews?email=${user?.email}`);
+      return res.data.data || [];
+    },
+  });
+
+  if (isPending || reviewsLoading) return <LoadingSpinner />;
+
+  // ✅ helper: already reviewed?
+  const hasReviewed = (scholarshipId) =>
+    myReviews?.some((r) => r.scholarshipId === scholarshipId);
 
   const handleDelete = async (id) => {
     const result = await Swal.fire({
@@ -100,6 +120,15 @@ const MyApplications = () => {
   };
 
   const openReviewModal = (app) => {
+    // ✅ UI guard (just in case)
+    if (hasReviewed(app.scholarshipId)) {
+      return Swal.fire({
+        icon: "info",
+        title: "Already reviewed",
+        text: "You already submitted a review for this scholarship.",
+      });
+    }
+
     setSelectedApp(app);
     setReviewData({ rating: 5, comment: "" });
     setShowReviewModal(true);
@@ -108,6 +137,16 @@ const MyApplications = () => {
   const handleReviewSubmit = async (e) => {
     e.preventDefault();
     if (!selectedApp) return;
+
+    // ✅ UI guard again
+    if (hasReviewed(selectedApp.scholarshipId)) {
+      setShowReviewModal(false);
+      return Swal.fire({
+        icon: "info",
+        title: "Already reviewed",
+        text: "You already submitted a review for this scholarship.",
+      });
+    }
 
     try {
       const res = await axiosPublic.post("/reviews", {
@@ -131,13 +170,24 @@ const MyApplications = () => {
       }
 
       setShowReviewModal(false);
+      await refetchReviews(); // ✅ refresh so button hides instantly
     } catch (error) {
       console.error(error);
+
+      // ✅ backend 409 handle (already reviewed)
+      const msg =
+        error?.response?.status === 409
+          ? "You already reviewed this scholarship."
+          : error.message || "Could not submit review.";
+
       Swal.fire({
-        icon: "error",
-        title: "Error",
-        text: error.message || "Could not submit review.",
+        icon: error?.response?.status === 409 ? "info" : "error",
+        title: error?.response?.status === 409 ? "Already reviewed" : "Error",
+        text: msg,
       });
+
+      setShowReviewModal(false);
+      await refetchReviews();
     }
   };
 
@@ -252,14 +302,23 @@ const MyApplications = () => {
                 </>
               )}
 
-              {app.applicationStatus === "completed" && (
-                <button
-                  onClick={() => openReviewModal(app)}
-                  className="btn btn-primary btn-xs"
-                >
-                  Add Review
-                </button>
-              )}
+              {/* ✅ Review show only if completed + not reviewed */}
+              {app.applicationStatus === "completed" &&
+                !hasReviewed(app.scholarshipId) && (
+                  <button
+                    onClick={() => openReviewModal(app)}
+                    className="btn btn-primary btn-xs"
+                  >
+                    Add Review
+                  </button>
+                )}
+
+              {app.applicationStatus === "completed" &&
+                hasReviewed(app.scholarshipId) && (
+                  <button disabled={true} className="btn bg-green-500 text-slate-100 disabled:cursor-not-allowed!">
+                    Reviewed
+                  </button>
+                )}
             </div>
           </div>
         ))}
@@ -378,14 +437,23 @@ const MyApplications = () => {
                         </>
                       )}
 
-                      {app.applicationStatus === "completed" && (
-                        <button
-                          onClick={() => openReviewModal(app)}
-                          className="btn btn-primary btn-xs"
-                        >
-                          Add Review
-                        </button>
-                      )}
+                      {/* ✅ Review show only if completed + not reviewed */}
+                      {app.applicationStatus === "completed" &&
+                        !hasReviewed(app.scholarshipId) && (
+                          <button
+                            onClick={() => openReviewModal(app)}
+                            className="btn btn-primary btn-xs"
+                          >
+                            Add Review
+                          </button>
+                        )}
+
+                      {app.applicationStatus === "completed" &&
+                        hasReviewed(app.scholarshipId) && (
+                          <button disabled={true} className="btn bg-green-500 text-slate-100 disabled:cursor-not-allowed!">
+                            Reviewed
+                          </button>
+                        )}
                     </div>
                   </td>
                 </tr>
@@ -481,7 +549,7 @@ const MyApplications = () => {
                 onChange={(e) =>
                   setReviewData({ ...reviewData, comment: e.target.value })
                 }
-                className="textarea textarea-bordered w-full min-h-[80px]"
+                className="textarea textarea-bordered w-full min-h-[80px] border rounded-md p-5 border-slate-400"
                 required
               />
             </div>

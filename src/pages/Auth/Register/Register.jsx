@@ -7,6 +7,7 @@ import successToast from "../../../utils/successToast";
 import errorToast from "../../../utils/errorToast";
 import LoginWithGoogle from "../components/LoginWithGoogle";
 import useAxiosPublic from "../../../hooks/useAxiosPublic";
+import setToken from "../../../utils/setToken";
 const Register = () => {
   const [pending, setPending] = useState(false)
   const { userRegister, userUpdate, user } = useAuth()
@@ -33,6 +34,7 @@ const Register = () => {
         userUpdate({ displayName: data?.name, photoURL })
           .then(() => successToast('Register Successful!', 'Your account has been created successfully.'))
           .catch(error => errorToast(error))
+          navigate(state || '/')
         axiosPublic.post('/users', { photoURL, email: result.user.email, name: data?.name })
         setPending(false)
       }

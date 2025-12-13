@@ -5,6 +5,7 @@ import useAuth from "../../../hooks/useAuth";
 import successToast from "../../../utils/successToast";
 import errorToast from "../../../utils/errorToast";
 import LoginWithGoogle from "../components/LoginWithGoogle";
+import setToken from "../../../utils/setToken";
 
 const Login = () => {
   const [pending, setPending] = useState(false);
@@ -31,6 +32,7 @@ const Login = () => {
           "Login Successful!",
           "Welcome back! You’re now logged in."
         );
+        navigate(state||'/')
       }
     } catch (error) {
       errorToast(error);
