@@ -45,7 +45,6 @@ const DashboardLayout = () => {
       label: "My Reviews",
       icon: <FiStar className={iconClasses} />,
     },
-
   ];
 
   const moderatorLinks = [
@@ -66,7 +65,13 @@ const DashboardLayout = () => {
     },
   ];
 
+  // ✅ Admin must have My Profile
   const adminLinks = [
+    {
+      to: "/dashboard/my-profile",
+      label: "My Profile",
+      icon: <FiUser className={iconClasses} />,
+    },
     {
       to: "/dashboard/add-scholarship",
       label: "Add Scholarship",
@@ -95,9 +100,10 @@ const DashboardLayout = () => {
       to={item.to}
       onClick={closeSidebar}
       className={({ isActive }) =>
-        `${linkBaseClasses} ${isActive
-          ? "bg-primary/10 text-primary"
-          : "text-slate-600 hover:bg-slate-100 hover:text-secondary"
+        `${linkBaseClasses} ${
+          isActive
+            ? "bg-primary/10 text-primary"
+            : "text-slate-600 hover:bg-slate-100 hover:text-secondary"
         }`
       }
     >
@@ -110,8 +116,8 @@ const DashboardLayout = () => {
     role === "Admin"
       ? "Manage scholarships, users & analytics"
       : role === "Moderator"
-        ? "Manage applications & reviews"
-        : "Manage your profile, applications & reviews";
+      ? "Manage applications & reviews"
+      : "Manage your profile, applications & reviews";
 
   if (roleLoading) return <LoadingSpinner />;
 
@@ -125,7 +131,7 @@ const DashboardLayout = () => {
         </div>
 
         {/* Nav */}
-        <div className="flex-1 overflow-y-auto px-3 pt-4">
+        <div className="flex-1 overflow-y-auto px-3 pt-4 space-y-5">
           {/* Back to Home */}
           <div>
             <p className="px-2 text-[11px] font-semibold uppercase tracking-wide text-slate-400">
@@ -134,9 +140,10 @@ const DashboardLayout = () => {
             <NavLink
               to="/"
               className={({ isActive }) =>
-                `${linkBaseClasses} ${isActive
-                  ? "bg-primary/10 text-primary"
-                  : "text-slate-600 hover:bg-slate-100 hover:text-secondary"
+                `${linkBaseClasses} ${
+                  isActive
+                    ? "bg-primary/10 text-primary"
+                    : "text-slate-600 hover:bg-slate-100 hover:text-secondary"
                 }`
               }
             >
@@ -145,23 +152,32 @@ const DashboardLayout = () => {
             </NavLink>
           </div>
 
-          {/* Student (only Student) */}
+          {/* ✅ Student only */}
           {role === "Student" && (
             <div>
+              <p className="px-2 mb-2 text-[11px] font-semibold uppercase tracking-wide text-slate-400">
+                Student
+              </p>
               <div className="space-y-1">{studentLinks.map(renderLink)}</div>
             </div>
           )}
 
-          {/* Moderator (Moderator + Admin) */}
-          {(role === "Moderator" || role === "Admin") && (
+          {/* ✅ Moderator only (Admin will NOT see this) */}
+          {role === "Moderator" && (
             <div>
+              <p className="px-2 mb-2 text-[11px] font-semibold uppercase tracking-wide text-slate-400">
+                Moderator
+              </p>
               <div className="space-y-1">{moderatorLinks.map(renderLink)}</div>
             </div>
           )}
 
-          {/* Admin (only Admin) */}
+          {/* ✅ Admin only */}
           {role === "Admin" && (
             <div>
+              <p className="px-2 mb-2 text-[11px] font-semibold uppercase tracking-wide text-slate-400">
+                Admin
+              </p>
               <div className="space-y-1">{adminLinks.map(renderLink)}</div>
             </div>
           )}
@@ -173,17 +189,21 @@ const DashboardLayout = () => {
         </div>
       </aside>
 
-      {/* Sidebar - Mobile (Drawer) */}
+      {/* Sidebar - Mobile Overlay */}
       <div
-        className={`fixed inset-0 z-40 bg-black/40 lg:hidden transition-opacity ${isSidebarOpen
+        className={`fixed inset-0 z-40 bg-black/40 lg:hidden transition-opacity ${
+          isSidebarOpen
             ? "opacity-100 pointer-events-auto"
             : "opacity-0 pointer-events-none"
-          }`}
+        }`}
         onClick={closeSidebar}
       />
+
+      {/* Sidebar - Mobile Drawer */}
       <aside
-        className={`fixed top-0 left-0 z-50 h-full w-64 bg-white border-r border-black/10 shadow-xl transform transition-transform lg:hidden ${isSidebarOpen ? "translate-x-0" : "-translate-x-full"
-          }`}
+        className={`fixed top-0 left-0 z-50 h-full w-64 bg-white border-r border-black/10 shadow-xl transform transition-transform lg:hidden ${
+          isSidebarOpen ? "translate-x-0" : "-translate-x-full"
+        }`}
       >
         <div className="h-14 border-b border-black/10 px-4 flex items-center justify-between">
           <div className="flex items-center gap-2">
@@ -199,7 +219,6 @@ const DashboardLayout = () => {
         </div>
 
         <div className="px-3 py-4 space-y-5 overflow-y-auto">
-          {/* Overview */}
           <div>
             <p className="px-2 mb-2 text-[11px] font-semibold uppercase tracking-wide text-slate-400">
               Overview
@@ -208,9 +227,10 @@ const DashboardLayout = () => {
               to="/"
               onClick={closeSidebar}
               className={({ isActive }) =>
-                `${linkBaseClasses} ${isActive
-                  ? "bg-primary/10 text-primary"
-                  : "text-slate-600 hover:bg-slate-100 hover:text-secondary"
+                `${linkBaseClasses} ${
+                  isActive
+                    ? "bg-primary/10 text-primary"
+                    : "text-slate-600 hover:bg-slate-100 hover:text-secondary"
                 }`
               }
             >
@@ -219,7 +239,6 @@ const DashboardLayout = () => {
             </NavLink>
           </div>
 
-          {/* Student */}
           {role === "Student" && (
             <div>
               <p className="px-2 mb-2 text-[11px] font-semibold uppercase tracking-wide text-slate-400">
@@ -229,8 +248,8 @@ const DashboardLayout = () => {
             </div>
           )}
 
-          {/* Moderator */}
-          {(role === "Moderator" || role === "Admin") && (
+          {/* ✅ Moderator only */}
+          {role === "Moderator" && (
             <div>
               <p className="px-2 mb-2 text-[11px] font-semibold uppercase tracking-wide text-slate-400">
                 Moderator
@@ -239,7 +258,6 @@ const DashboardLayout = () => {
             </div>
           )}
 
-          {/* Admin */}
           {role === "Admin" && (
             <div>
               <p className="px-2 mb-2 text-[11px] font-semibold uppercase tracking-wide text-slate-400">
@@ -257,12 +275,9 @@ const DashboardLayout = () => {
 
       {/* Main Content Area */}
       <div className="flex-1 flex flex-col min-h-screen">
-        {/* Header */}
         <header className="h-16 border-b border-black/10 bg-white/80 backdrop-blur flex items-center">
           <div className="container flex items-center justify-between gap-3">
-            {/* Left */}
             <div className="flex items-center gap-2">
-              {/* Mobile menu */}
               <button
                 onClick={toggleSidebar}
                 className="lg:hidden p-2 rounded-md border border-slate-200 text-slate-700 hover:bg-slate-100"
@@ -279,7 +294,6 @@ const DashboardLayout = () => {
               </div>
             </div>
 
-            {/* Right: user mini card */}
             <div className="flex items-center gap-2">
               {user && (
                 <>
@@ -311,19 +325,15 @@ const DashboardLayout = () => {
           </div>
         </header>
 
-        {/* Page Content */}
         <main className="flex-1">
           <div className="container py-4 lg:py-6">
             <Outlet />
           </div>
         </main>
 
-        {/* Footer */}
         <footer className="border-t border-black/10 bg-white/80 backdrop-blur">
           <div className="container py-3 text-[11px] text-slate-400 flex flex-wrap items-center justify-between gap-2">
-            <span>
-              © {new Date().getFullYear()} ScholarLink. All rights reserved.
-            </span>
+            <span>© {new Date().getFullYear()} ScholarLink. All rights reserved.</span>
             <span className="text-[10px]">
               Role:{" "}
               <span className="font-semibold text-secondary">

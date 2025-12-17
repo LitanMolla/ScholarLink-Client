@@ -1,17 +1,21 @@
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
-import useAxiosPublic from "../../../../hooks/useAxiosPublic";
 import LoadingSpinner from "../../../../components/LoadingSpinner/LoadingSpinner";
 import Swal from "sweetalert2";
 import useAxiosSecure from "../../../../hooks/useAxiosSecure";
+import Spinner from "../../../../components/Spinner/Spinner";
 
 const ManageUsers = () => {
   const axiosSecure = useAxiosSecure();
 
   const [searchText, setSearchText] = useState("");
   const [search, setSearch] = useState("");
+
   const [page, setPage] = useState(1);
   const limit = 10;
+
+  // ✅ NEW: role filter
+  const [roleFilter, setRoleFilter] = useState("all"); // all | Student | Moderator | Admin
 
   // debounce search
   useEffect(() => {
@@ -23,64 +27,104 @@ const ManageUsers = () => {
   }, [searchText]);
 
   const { data, isPending, refetch, isFetching } = useQuery({
-    queryKey: ["all-users", search, page, limit],
+    queryKey: ["all-users", search, roleFilter, page, limit],
     queryFn: async () => {
       const res = await axiosSecure.get(
-        `/users?search=${encodeURIComponent(search)}&page=${page}&limit=${limit}`
+        `/users?search=${encodeURIComponent(search)}&role=${encodeURIComponent(
+          roleFilter
+        )}&page=${page}&limit=${limit}`
       );
       return res.data;
     },
   });
 
-  if (isPending) return <LoadingSpinner />;
-
   const users = data?.data || [];
   const meta = data?.meta || { total: 0, page: 1, totalPages: 1, limit };
 
-  const pages = [];
-  for (let i = 1; i <= (meta.totalPages || 1); i++) pages.push(i);
+  const pages = useMemo(() => {
+    const arr = [];
+    for (let i = 1; i <= (meta.totalPages || 1); i++) arr.push(i);
+    return arr;
+  }, [meta.totalPages]);
 
-  const handleRoleChange = async (user, newRole) => {
-    if (user.role === newRole) return;
+  // if (isPending) return <LoadingSpinner />;
+
+  const getPhoto = (u) =>
+    u.photoURL ||
+    `https://ui-avatars.com/api/?name=${encodeURIComponent(u.name || u.email)}`;
+
+  const handleRoleChange = async (targetUser, newRole) => {
+    if (!targetUser?._id) return;
+
+    if ((targetUser.role || "Student") === newRole) return;
 
     const result = await Swal.fire({
       title: "Change user role?",
-      text: `${user.email} → ${newRole}`,
+      text: `${targetUser.email} → ${newRole}`,
       icon: "warning",
       showCancelButton: true,
       confirmButtonText: "Yes, change",
       cancelButtonText: "Cancel",
+      reverseButtons: true,
     });
 
     if (!result.isConfirmed) return;
 
     try {
-      await axiosPublic.patch(`/users/${user._id}`, { role: newRole });
+      await axiosSecure.patch(`/users/${targetUser._id}`, { role: newRole });
+
       Swal.fire({
         icon: "success",
         title: "Role updated",
         timer: 1200,
         showConfirmButton: false,
       });
+
       refetch();
     } catch (error) {
-      Swal.fire("Error", error.message || "Failed to update role", "error");
+      Swal.fire("Error", error?.response?.data?.message || error.message || "Failed", "error");
     }
   };
 
-  const getPhoto = (user) => {
-    return (
-      user.photoURL ||
-      `https://ui-avatars.com/api/?name=${encodeURIComponent(
-        user.name || user.email
-      )}`
-    );
+  // ✅ NEW: delete user
+  const handleDeleteUser = async (targetUser) => {
+    if (!targetUser?._id) return;
+
+    const result = await Swal.fire({
+      title: "Delete user?",
+      html: `<p style="font-size:13px;">This will permanently remove:</p><p style="font-weight:600;">${targetUser.email}</p>`,
+      icon: "error",
+      showCancelButton: true,
+      confirmButtonText: "Yes, delete",
+      cancelButtonText: "Cancel",
+      confirmButtonColor: "#ef4444",
+      reverseButtons: true,
+    });
+
+    if (!result.isConfirmed) return;
+
+    try {
+      await axiosSecure.delete(`/users/${targetUser._id}`);
+
+      Swal.fire({
+        icon: "success",
+        title: "User deleted",
+        timer: 1200,
+        showConfirmButton: false,
+      });
+
+      // ✅ If last item deleted on current page, go back one page if needed
+      if (users.length === 1 && page > 1) setPage((p) => p - 1);
+      else refetch();
+    } catch (error) {
+      Swal.fire("Error", error?.response?.data?.message || error.message || "Failed", "error");
+    }
   };
 
   return (
     <section className="py-6 w-full space-y-4">
-      {/* Header + Search */}
-      <div className="flex flex-col sm:flex-row gap-3 sm:items-center sm:justify-between">
+      {/* Header + Search + Role Filter */}
+      <div className="flex flex-col lg:flex-row gap-3 lg:items-center lg:justify-between">
         <div>
           <h1 className="text-lg font-semibold text-secondary">Manage Users</h1>
           <p className="text-xs text-slate-500">
@@ -88,133 +132,149 @@ const ManageUsers = () => {
           </p>
         </div>
 
-        <div className="w-full sm:w-80">
+        <div className="flex flex-col sm:flex-row gap-2 w-full lg:w-auto">
+          {/* ✅ Role Filter */}
+          <select
+            value={roleFilter}
+            onChange={(e) => {
+              setRoleFilter(e.target.value);
+              setPage(1);
+            }}
+            className="w-full sm:w-44 px-3 py-2 bg-slate-100 border border-slate-300 rounded-md text-sm focus:outline-none focus:bg-white focus:border-primary transition"
+          >
+            <option value="all">All Roles</option>
+            <option value="Student">Student</option>
+            <option value="Moderator">Moderator</option>
+            <option value="Admin">Admin</option>
+          </select>
+
+          {/* Search */}
           <input
             value={searchText}
             onChange={(e) => setSearchText(e.target.value)}
             placeholder="Search by name or email..."
-            className="w-full px-3 py-2 bg-slate-100 border border-slate-300 rounded-md focus:outline-none focus:bg-white focus:border-primary transition"
+            className="w-full sm:w-80 px-3 py-2 bg-slate-100 border border-slate-300 rounded-md focus:outline-none focus:bg-white focus:border-primary transition"
           />
         </div>
       </div>
 
       {/* Desktop table */}
       <div className="hidden md:block w-full">
-        <div className="overflow-x-auto rounded-xl border border-black/10 bg-white ">
-          <table className="w-full text-xs sm:text-sm ">
-            <thead className="bg-slate-50 text-[11px] uppercase text-slate-500 ">
+        <div className="overflow-x-auto rounded-xl border border-black/10 bg-white">
+          {isPending?<Spinner/>:<table className="w-full text-xs sm:text-sm">
+            <thead className="bg-slate-50 text-[11px] uppercase text-slate-500">
               <tr>
                 <th className="px-3 py-2 text-left">User</th>
                 <th className="px-3 py-2 text-left">Email</th>
                 <th className="px-3 py-2 text-left">Role</th>
-                <th className="px-3 py-2 text-right">Action</th>
+                <th className="px-3 py-2 text-right">Actions</th>
               </tr>
             </thead>
 
             <tbody>
               {users.length === 0 && (
                 <tr>
-                  <td
-                    colSpan="4"
-                    className="px-3 py-6 text-center text-xs text-slate-500"
-                  >
+                  <td colSpan="4" className="px-3 py-6 text-center text-xs text-slate-500">
                     No users found.
                   </td>
                 </tr>
               )}
 
-              {users.map((user, index) => (
+              {users.map((u, index) => (
                 <tr
-                  key={user._id}
+                  key={u._id}
                   className={`border-t border-slate-100 ${
                     index % 2 === 0 ? "bg-white" : "bg-slate-50"
                   } hover:bg-slate-100 transition`}
                 >
-                  {/* User with photo */}
                   <td className="px-3 py-3">
                     <div className="flex items-center gap-2">
                       <img
-                        src={getPhoto(user)}
-                        alt={user.name || "User"}
+                        src={getPhoto(u)}
+                        alt={u.name || "User"}
                         className="h-9 w-9 rounded-full object-cover border border-slate-300"
                         onError={(e) => {
-                          e.target.src = `https://ui-avatars.com/api/?name=${encodeURIComponent(
-                            user.name || user.email
-                          )}`;
+                          e.target.src = getPhoto(u);
                         }}
                       />
-                      <span className="font-medium text-secondary">
-                        {user?.name || "N/A"}
-                      </span>
+                      <span className="font-medium text-secondary">{u?.name || "N/A"}</span>
                     </div>
                   </td>
 
-                  <td className="px-3 py-3 text-slate-700">{user.email}</td>
+                  <td className="px-3 py-3 text-slate-700">{u.email}</td>
 
                   <td className="px-3 py-3">
                     <span className="inline-flex px-2 py-1 rounded-full text-[10px] font-medium bg-slate-100 text-slate-700">
-                      {user.role}
+                      {u.role || "Student"}
                     </span>
                   </td>
 
                   <td className="px-3 py-3 text-right">
-                    <select
-                      value={user.role}
-                      onChange={(e) => handleRoleChange(user, e.target.value)}
-                      className="px-2 py-1 text-xs bg-slate-100 border border-slate-300 rounded-md focus:outline-none"
-                    >
-                      <option value="Student">Student</option>
-                      <option value="Moderator">Moderator</option>
-                      <option value="Admin">Admin</option>
-                    </select>
+                    <div className="flex justify-end gap-2 flex-wrap">
+                      {/* Change role */}
+                      <select
+                        value={u.role || "Student"}
+                        onChange={(e) => handleRoleChange(u, e.target.value)}
+                        className="px-2 py-1 text-xs bg-slate-100 border border-slate-300 rounded-md focus:outline-none"
+                      >
+                        <option value="Student">Student</option>
+                        <option value="Moderator">Moderator</option>
+                        <option value="Admin">Admin</option>
+                      </select>
+
+                      {/* ✅ Delete */}
+                      <button
+                        onClick={() => handleDeleteUser(u)}
+                        className="btn btn-danger btn-xs"
+                      >
+                        Delete
+                      </button>
+                    </div>
                   </td>
                 </tr>
               ))}
             </tbody>
-          </table>
+          </table>}
         </div>
       </div>
 
       {/* Mobile cards */}
       <div className="grid gap-3 md:hidden">
-        {users.map((user) => (
-          <div
-            key={user._id}
-            className="rounded-xl border border-black/10 bg-white p-4 space-y-2"
-          >
+        {users.map((u) => (
+          <div key={u._id} className="rounded-xl border border-black/10 bg-white p-4 space-y-3">
             <div className="flex items-center gap-3">
               <img
-                src={getPhoto(user)}
-                alt={user.name || "User"}
+                src={getPhoto(u)}
+                alt={u.name || "User"}
                 className="h-10 w-10 rounded-full object-cover border border-slate-300"
                 onError={(e) => {
-                  e.target.src = `https://ui-avatars.com/api/?name=${encodeURIComponent(
-                    user.name || user.email
-                  )}`;
+                  e.target.src = getPhoto(u);
                 }}
               />
 
-              <div className="flex-1">
-                <p className="text-sm font-semibold text-secondary">
-                  {user?.name || "N/A"}
-                </p>
-                <p className="text-[11px] text-slate-500">{user.email}</p>
+              <div className="flex-1 min-w-0">
+                <p className="text-sm font-semibold text-secondary truncate">{u?.name || "N/A"}</p>
+                <p className="text-[11px] text-slate-500 truncate">{u.email}</p>
               </div>
+
+              <span className="px-2 py-1 rounded-full text-[10px] font-medium bg-slate-100 text-slate-700">
+                {u.role || "Student"}
+              </span>
             </div>
 
-            <p className="text-[11px] text-slate-600">
-              <span className="font-medium">Role:</span> {user.role}
-            </p>
-
             <select
-              value={user.role}
-              onChange={(e) => handleRoleChange(user, e.target.value)}
+              value={u.role || "Student"}
+              onChange={(e) => handleRoleChange(u, e.target.value)}
               className="w-full px-3 py-2 bg-slate-100 border border-slate-300 rounded-md text-xs focus:outline-none"
             >
               <option value="Student">Student</option>
               <option value="Moderator">Moderator</option>
               <option value="Admin">Admin</option>
             </select>
+
+            <button onClick={() => handleDeleteUser(u)} className="btn btn-danger w-full">
+              Delete User
+            </button>
           </div>
         ))}
 
