@@ -22,6 +22,9 @@
 .btn{
   @apply px-6 py-2.5 rounded-md duration-300 cursor-pointer
 }
+.btn-outline {
+    @apply border border-blue-600 bg-blue-200
+  }
 button{
   cursor: pointer;
 }

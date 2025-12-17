@@ -120,7 +120,6 @@ const MyApplications = () => {
   };
 
   const openReviewModal = (app) => {
-    // ✅ UI guard (just in case)
     if (hasReviewed(app.scholarshipId)) {
       return Swal.fire({
         icon: "info",
@@ -138,7 +137,6 @@ const MyApplications = () => {
     e.preventDefault();
     if (!selectedApp) return;
 
-    // ✅ UI guard again
     if (hasReviewed(selectedApp.scholarshipId)) {
       setShowReviewModal(false);
       return Swal.fire({
@@ -170,11 +168,10 @@ const MyApplications = () => {
       }
 
       setShowReviewModal(false);
-      await refetchReviews(); // ✅ refresh so button hides instantly
+      await refetchReviews();
     } catch (error) {
       console.error(error);
 
-      // ✅ backend 409 handle (already reviewed)
       const msg =
         error?.response?.status === 409
           ? "You already reviewed this scholarship."
@@ -196,8 +193,10 @@ const MyApplications = () => {
     return new Date(dateString).toLocaleDateString();
   };
 
+  // ✅ updated: added "processing"
   const statusBadgeClass = (status) => {
     if (status === "pending") return "bg-amber-50 text-amber-600";
+    if (status === "processing") return "bg-blue-50 text-blue-600";
     if (status === "completed") return "bg-emerald-50 text-emerald-600";
     if (status === "rejected") return "bg-red-50 text-red-600";
     return "bg-slate-50 text-slate-600";
@@ -209,17 +208,15 @@ const MyApplications = () => {
   };
 
   return (
-    <section className="py-6">
+    <section className="py-6 capitalize">
       <div className="flex items-center justify-between mb-4">
-        <h1 className="text-lg font-semibold text-secondary">
-          My Applications
-        </h1>
+        <h1 className="text-lg font-semibold text-secondary">My Applications</h1>
         <p className="text-xs text-slate-500">
           Total applications: {applications.length}
         </p>
       </div>
 
-      {/* 🔹 Mobile view (md er niche): cards */}
+      {/* 🔹 Mobile (md-) */}
       <div className="grid gap-3 md:hidden">
         {applications.length === 0 && (
           <p className="text-center text-xs text-slate-500 border border-dashed border-slate-200 rounded-xl py-6 bg-white">
@@ -241,6 +238,7 @@ const MyApplications = () => {
                   {app.scholarshipCategory} · {app.degree}
                 </p>
               </div>
+
               <span
                 className={`inline-flex px-2 py-1 rounded-full text-[10px] font-medium ${statusBadgeClass(
                   app.applicationStatus
@@ -251,14 +249,13 @@ const MyApplications = () => {
             </div>
 
             <p className="text-[11px] text-slate-600">
-              <span className="font-medium">Subject:</span>{" "}
-              {app.subjectCategory}
+              <span className="font-medium">Subject:</span> {app.subjectCategory}
             </p>
 
             <p className="text-[11px] text-slate-600">
-              <span className="font-medium">Fees:</span>{" "}
-              ${app.applicationFees || 0} (application) + $
-              {app.serviceCharge || 0} (service)
+              <span className="font-medium">Fees:</span> $
+              {app.applicationFees || 0} (application) + ${app.serviceCharge || 0}{" "}
+              (service)
             </p>
 
             <div className="flex items-center justify-between">
@@ -282,6 +279,7 @@ const MyApplications = () => {
                 Details
               </button>
 
+              {/* ✅ Pay/Delete only when PENDING */}
               {app.applicationStatus === "pending" && (
                 <>
                   {app.paymentStatus === "unpaid" && (
@@ -302,7 +300,7 @@ const MyApplications = () => {
                 </>
               )}
 
-              {/* ✅ Review show only if completed + not reviewed */}
+              {/* ✅ Review only when COMPLETED */}
               {app.applicationStatus === "completed" &&
                 !hasReviewed(app.scholarshipId) && (
                   <button
@@ -315,7 +313,7 @@ const MyApplications = () => {
 
               {app.applicationStatus === "completed" &&
                 hasReviewed(app.scholarshipId) && (
-                  <button disabled={true} className="btn bg-green-500 text-slate-100 disabled:cursor-not-allowed!">
+                  <button className="btn btn-success btn-xs bg-blue-500" disabled>
                     Reviewed
                   </button>
                 )}
@@ -324,7 +322,7 @@ const MyApplications = () => {
         ))}
       </div>
 
-      {/* 🔹 Desktop view (md & up): table (scrollable) */}
+      {/* 🔹 Desktop (md+) */}
       <div className="hidden md:block">
         <div className="overflow-x-auto rounded-xl border border-black/10 bg-white">
           <table className="w-full text-xs sm:text-sm">
@@ -339,6 +337,7 @@ const MyApplications = () => {
                 <th className="px-3 py-2 text-right">Actions</th>
               </tr>
             </thead>
+
             <tbody>
               {applications.length === 0 && (
                 <tr>
@@ -417,6 +416,7 @@ const MyApplications = () => {
                         Details
                       </button>
 
+                      {/* ✅ Pay/Delete only when PENDING */}
                       {app.applicationStatus === "pending" && (
                         <>
                           {app.paymentStatus === "unpaid" && (
@@ -437,7 +437,7 @@ const MyApplications = () => {
                         </>
                       )}
 
-                      {/* ✅ Review show only if completed + not reviewed */}
+                      {/* ✅ Review only when COMPLETED */}
                       {app.applicationStatus === "completed" &&
                         !hasReviewed(app.scholarshipId) && (
                           <button
@@ -450,7 +450,7 @@ const MyApplications = () => {
 
                       {app.applicationStatus === "completed" &&
                         hasReviewed(app.scholarshipId) && (
-                          <button disabled={true} className="btn bg-green-500 text-slate-100 disabled:cursor-not-allowed!">
+                          <button className="btn btn-success btn-xs bg-blue-500 text-slate-100 disabled:cursor-not-allowed!" disabled>
                             Reviewed
                           </button>
                         )}
@@ -465,11 +465,12 @@ const MyApplications = () => {
 
       {/* Details Modal */}
       {showDetails && selectedApp && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40">
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-3">
           <div className="bg-white rounded-2xl max-w-md w-full p-5 shadow-lg">
             <h2 className="text-sm font-semibold text-secondary mb-3">
               Application Details
             </h2>
+
             <div className="space-y-1 text-xs text-slate-700">
               <p>
                 <span className="font-medium">University:</span>{" "}
@@ -480,12 +481,11 @@ const MyApplications = () => {
                 {selectedApp.subjectCategory}
               </p>
               <p>
-                <span className="font-medium">Degree:</span>{" "}
-                {selectedApp.degree}
+                <span className="font-medium">Degree:</span> {selectedApp.degree}
               </p>
               <p>
-                <span className="font-medium">Fees:</span>{" "}
-                ${selectedApp.applicationFees || 0} (application) + $
+                <span className="font-medium">Fees:</span> $
+                {selectedApp.applicationFees || 0} (application) + $
                 {selectedApp.serviceCharge || 0} (service)
               </p>
               <p>
@@ -496,6 +496,7 @@ const MyApplications = () => {
                 <span className="font-medium">Payment:</span>{" "}
                 {selectedApp.paymentStatus}
               </p>
+
               {selectedApp.feedback && (
                 <p>
                   <span className="font-medium">Feedback:</span>{" "}
@@ -518,7 +519,7 @@ const MyApplications = () => {
 
       {/* Add Review Modal */}
       {showReviewModal && selectedApp && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40">
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-3">
           <form
             onSubmit={handleReviewSubmit}
             className="bg-white rounded-2xl max-w-md w-full p-5 shadow-lg space-y-3"
@@ -549,7 +550,7 @@ const MyApplications = () => {
                 onChange={(e) =>
                   setReviewData({ ...reviewData, comment: e.target.value })
                 }
-                className="textarea textarea-bordered w-full min-h-[80px] border rounded-md p-5 border-slate-400"
+                className="textarea textarea-bordered w-full min-h-[90px]"
                 required
               />
             </div>

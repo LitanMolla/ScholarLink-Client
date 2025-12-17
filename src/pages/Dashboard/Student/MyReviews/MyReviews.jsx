@@ -45,8 +45,8 @@ const MyReviews = () => {
   const openEditModal = (review) => {
     setEditingReview(review);
     setEditData({
-      rating: review.ratingPoint,
-      comment: review.reviewComment,
+      rating: Number(review.ratingPoint) || 5,
+      comment: review.reviewComment || "",
     });
   };
 
@@ -56,7 +56,7 @@ const MyReviews = () => {
 
     try {
       await axiosPublic.patch(`/reviews/${editingReview._id}`, {
-        ratingPoint: editData.rating,
+        ratingPoint: Number(editData.rating),
         reviewComment: editData.comment,
       });
 
@@ -67,13 +67,38 @@ const MyReviews = () => {
     }
   };
 
+  // ⭐ Star Rating UI
+  const StarRating = ({ value, onChange }) => {
+    const v = Number(value) || 0;
+
+    return (
+      <div className="flex items-center gap-1">
+        {[1, 2, 3, 4, 5].map((n) => (
+          <button
+            type="button"
+            key={n}
+            onClick={() => onChange(n)}
+            className="p-1 rounded-md hover:bg-slate-100 transition"
+            aria-label={`Rate ${n} star`}
+            title={`${n} star`}
+          >
+            <span className={`text-lg ${n <= v ? "text-amber-500" : "text-slate-300"}`}>
+              ★
+            </span>
+          </button>
+        ))}
+        <span className="ml-2 text-xs font-semibold text-slate-600">
+          {v}/5
+        </span>
+      </div>
+    );
+  };
+
   return (
     <section className="py-6">
       <div className="flex items-center justify-between mb-4">
         <h1 className="text-lg font-semibold text-secondary">My Reviews</h1>
-        <p className="text-xs text-slate-500">
-          Total reviews: {reviews.length}
-        </p>
+        <p className="text-xs text-slate-500">Total reviews: {reviews.length}</p>
       </div>
 
       <div className="overflow-x-auto rounded-xl border border-black/10 bg-white">
@@ -88,6 +113,7 @@ const MyReviews = () => {
               <th className="px-3 py-2 text-right">Actions</th>
             </tr>
           </thead>
+
           <tbody>
             {reviews.length === 0 && (
               <tr>
@@ -108,18 +134,27 @@ const MyReviews = () => {
                 <td className="px-3 py-3 align-top text-xs text-secondary font-medium">
                   {review.scholarshipName || "N/A"}
                 </td>
+
                 <td className="px-3 py-3 align-top text-xs text-slate-700">
                   {review.universityName}
                 </td>
+
                 <td className="px-3 py-3 align-top text-xs text-slate-700">
-                  ⭐ {review.ratingPoint}
+                  <div className="flex items-center gap-1">
+                    <span className="text-amber-500">★</span>
+                    <span className="font-semibold">{review.ratingPoint}</span>
+                    <span className="text-slate-400">/5</span>
+                  </div>
                 </td>
+
                 <td className="px-3 py-3 align-top text-[11px] text-slate-600">
                   {formatDate(review.reviewDate)}
                 </td>
+
                 <td className="px-3 py-3 align-top text-xs text-slate-700 max-w-xs">
                   {review.reviewComment}
                 </td>
+
                 <td className="px-3 py-3 align-top text-right">
                   <div className="flex justify-end gap-1 flex-wrap">
                     <button
@@ -144,40 +179,53 @@ const MyReviews = () => {
 
       {/* Edit Review Modal */}
       {editingReview && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40">
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-3">
           <form
             onSubmit={handleEditSubmit}
-            className="bg-white rounded-2xl max-w-md w-full p-5 shadow-lg space-y-3"
+            className="bg-white rounded-2xl max-w-md w-full p-5 shadow-lg space-y-4"
           >
-            <h2 className="text-sm font-semibold text-secondary">
-              Edit Review – {editingReview.universityName}
-            </h2>
+            <div className="flex items-start justify-between gap-4">
+              <h2 className="text-sm font-semibold text-secondary">
+                Edit Review – {editingReview.universityName}
+              </h2>
+              <button
+                type="button"
+                onClick={() => setEditingReview(null)}
+                className="btn btn-ghost btn-xs"
+              >
+                ✕
+              </button>
+            </div>
 
-            <div className="space-y-1 text-xs">
-              <label className="block text-slate-600">Rating (1–5)</label>
-              <input
-                type="number"
-                min="1"
-                max="5"
+            {/* ⭐ Star Rating */}
+            <div className="space-y-1">
+              <label className="block text-xs text-slate-600 font-medium">
+                Rating
+              </label>
+              <StarRating
                 value={editData.rating}
-                onChange={(e) =>
-                  setEditData({ ...editData, rating: e.target.value })
-                }
-                className="input input-bordered w-full"
-                required
+                onChange={(n) => setEditData({ ...editData, rating: n })}
               />
             </div>
 
-            <div className="space-y-1 text-xs">
-              <label className="block text-slate-600">Your Comment</label>
+            {/* ✍️ Modern Textarea */}
+            <div className="space-y-1">
+              <label className="block text-xs text-slate-600 font-medium">
+                Your Comment
+              </label>
               <textarea
                 value={editData.comment}
                 onChange={(e) =>
                   setEditData({ ...editData, comment: e.target.value })
                 }
-                className="textarea textarea-bordered w-full min-h-[80px]"
+                placeholder="Write your feedback..."
+                className="w-full min-h-[110px] rounded-xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm text-slate-800 outline-none focus:border-primary focus:bg-white focus:ring-4 focus:ring-primary/10 transition"
                 required
               />
+              <div className="flex justify-between text-[11px] text-slate-500">
+                <span>Be specific & helpful.</span>
+                <span>{editData.comment?.length || 0} chars</span>
+              </div>
             </div>
 
             <div className="flex justify-end gap-2 pt-1">
