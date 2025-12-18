@@ -7,7 +7,6 @@ import successToast from "../../../utils/successToast";
 import errorToast from "../../../utils/errorToast";
 import LoginWithGoogle from "../components/LoginWithGoogle";
 import useAxiosPublic from "../../../hooks/useAxiosPublic";
-import setToken from "../../../utils/setToken";
 const Register = () => {
   const [pending, setPending] = useState(false)
   const { userRegister, userUpdate, user } = useAuth()
@@ -112,7 +111,7 @@ const Register = () => {
               {...register("password", {
                 required: "Password is required",
                 pattern: {
-                  value: /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)[A-Za-z\d!@#$%^&*()_+\-={}\[\]|:;"'<>,.?/~`]{6,}$/,
+                  value: /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{6,}$/,
                   message:
                     "Must contain uppercase, lowercase & number.",
                 },

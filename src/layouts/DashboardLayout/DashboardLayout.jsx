@@ -315,7 +315,7 @@ const DashboardLayout = () => {
                     <span className="text-xs font-medium text-secondary max-w-[140px] truncate">
                       {user.displayName || "User"}
                     </span>
-                    <span className="text-[10px] text-slate-500 max-w-[160px] truncate">
+                    <span className="text-[10px] text-slate-500 max-w-40 truncate">
                       {user.email}
                     </span>
                   </div>
